@@ -18,6 +18,20 @@ namespace SimpleAuthApplication.Controllers
             _userService = userService;
         }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] AuthDto authDto)
+        {
+            try
+            {
+                var tokenDto = await _userService.LoginAsync(authDto);
+                return Ok(tokenDto);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+        } 
+
         [HttpGet("me")]
         public async Task<IActionResult> Me()
         {

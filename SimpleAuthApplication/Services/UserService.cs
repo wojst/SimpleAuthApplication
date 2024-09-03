@@ -43,7 +43,7 @@ namespace SimpleAuthApplication.Services
         public async Task<TokenDto> LoginAsync(AuthDto authDto)
         {
             var auth = await _authRepository.GetAuthByLoginAsync(authDto.Login);
-            if (auth == null || BCrypt.Net.BCrypt.Verify(authDto.Password, auth.Password))
+            if (auth == null || !BCrypt.Net.BCrypt.Verify(authDto.Password, auth.Password))
             {
                 throw new UnauthorizedAccessException("Invalid login or password!");
             }
