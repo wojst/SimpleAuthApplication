@@ -45,11 +45,11 @@ namespace SimpleAuthApplication.Jwt
             return new TokenDto
             {
                 AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
-                RefreshToken = GenerateRefreshToken(user.Id)
+                RefreshToken = GenerateRefreshToken()
             };
         }
 
-        private string GenerateRefreshToken(int userId)
+        private string GenerateRefreshToken()
         {
             return Convert.ToBase64String(Guid.NewGuid().ToByteArray());
         }

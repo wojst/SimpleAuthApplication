@@ -53,7 +53,6 @@ namespace SimpleAuthApplication.Services
 
             var token = new Token
             {
-                AccessToken = tokenDto.AccessToken,
                 RefreshToken = tokenDto.RefreshToken,
                 RefreshTokenExpiry = DateTime.UtcNow.AddDays(30),
                 AuthId = auth.Id
@@ -66,7 +65,61 @@ namespace SimpleAuthApplication.Services
 
         public async Task<TokenDto> RefreshTokenAsync(string refreshToken)
         {
-            
+            var token = await _authRepository.GetTokenAsync(refreshToken);
+
+            if (token == null || token.RefreshTokenExpiry <= DateTime.UtcNow)
+            {
+                throw new UnauthorizedAccessException("Invalid or expired refresh token");
+            }
+
+            var user = await _userRepository.GetUserByIdAsync(token.Auth.UserId);
+            var newTokenDto = _jwtTokenGenerator.GenerateToken(user);
+
+            token.RefreshToken = newTokenDto.RefreshToken;
+            token.RefreshTokenExpiry = DateTime.UtcNow.AddDays(30);
+
+            await _authRepository.CreateTokenAsync(token);
+
+            return newTokenDto;
+
+        }
+
+        public async Task RegisterUserAsync(UserRegisterDto userRegisterDto)
+        {
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(userRegisterDto.Password);
+
+            var newUser = new User
+            {
+                FirstName = userRegisterDto.FirstName,
+                LastName = userRegisterDto.LastName,
+                Age = userRegisterDto.Age,
+                JobPosition = userRegisterDto.JobPosition,
+                EmploymentType = userRegisterDto.EmploymentType,
+
+                Auth = new Auth
+                {
+                    Login = userRegisterDto.Login,
+                    Password = hashedPassword,
+                    Email = userRegisterDto.Email
+                }
+            };
+
+            await _userRepository.CreateUserAsync(newUser);
+        }
+        public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
+        {
+            var users = await _userRepository.GetAllUsersAsync();
+            return users.Select(user => new UserDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Age = user.Age,
+                JobPosition = user.JobPosition,
+                EmploymentType = user.EmploymentType,
+                Login = user.Auth.Login,
+                Email = user.Auth.Email
+            });
         }
     }
 }
