@@ -24,9 +24,9 @@ namespace SimpleAuthApplication.Data
                 .HasForeignKey<Auth>(a => a.UserId);
 
             modelBuilder.Entity<Auth>()
-            .HasMany(a => a.Tokens)
-            .WithOne(t => t.Auth) 
-            .HasForeignKey(t => t.AuthId);
+                .HasMany(a => a.Tokens)
+                .WithOne(t => t.Auth) 
+                .HasForeignKey(t => t.AuthId);
         }
     }
 }

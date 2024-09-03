@@ -50,7 +50,7 @@ namespace SimpleAuthApplication.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Auths");
+                    b.ToTable("Auths", (string)null);
                 });
 
             modelBuilder.Entity("SimpleAuthApplication.Models.Token", b =>
@@ -75,7 +75,7 @@ namespace SimpleAuthApplication.Migrations
 
                     b.HasIndex("AuthId");
 
-                    b.ToTable("Tokens");
+                    b.ToTable("Tokens", (string)null);
                 });
 
             modelBuilder.Entity("SimpleAuthApplication.Models.User", b =>
@@ -107,7 +107,7 @@ namespace SimpleAuthApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("SimpleAuthApplication.Models.Auth", b =>

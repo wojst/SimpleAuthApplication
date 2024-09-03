@@ -30,7 +30,21 @@ namespace SimpleAuthApplication.Controllers
             {
                 return Unauthorized(ex.Message);
             }
-        } 
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+        {
+            try
+            {
+                var tokenDto = await _userService.RefreshTokenAsync(refreshToken);
+                return Ok(tokenDto);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+        }
 
         [HttpGet("me")]
         public async Task<IActionResult> Me()

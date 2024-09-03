@@ -69,7 +69,7 @@ namespace SimpleAuthApplication.Services
 
             if (token == null || token.RefreshTokenExpiry <= DateTime.UtcNow)
             {
-                throw new UnauthorizedAccessException("Invalid or expired refresh token");
+                throw new UnauthorizedAccessException("Refresh token has expired");
             }
 
             var user = await _userRepository.GetUserByIdAsync(token.Auth.UserId);
@@ -78,7 +78,7 @@ namespace SimpleAuthApplication.Services
             token.RefreshToken = newTokenDto.RefreshToken;
             token.RefreshTokenExpiry = DateTime.UtcNow.AddDays(30);
 
-            await _authRepository.CreateTokenAsync(token);
+            await _authRepository.UpdateTokenAsync(token);
 
             return newTokenDto;
 

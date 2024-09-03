@@ -26,6 +26,12 @@ namespace SimpleAuthApplication.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task UpdateTokenAsync(Token token)
+        {
+            _dbContext.Tokens.Update(token);
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task<Token> GetTokenAsync(string refreshToken)
         {
             return await _dbContext.Tokens
