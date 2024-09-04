@@ -5,7 +5,7 @@ namespace SimpleAuthApplication.Services
 {
     public interface IUserService
     {
-        Task<UserDto> GetUserAsync(int userId);
+        Task<UserDto> GetUserAsync(Guid userId);
         Task<TokenDto> LoginAsync(AuthDto authDto);
         Task RegisterUserAsync(UserRegisterDto userRegisterDto);
         Task<TokenDto> RefreshTokenAsync(string refreshToken);

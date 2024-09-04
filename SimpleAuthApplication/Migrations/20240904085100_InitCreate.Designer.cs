@@ -12,8 +12,8 @@ using SimpleAuthApplication.Data;
 namespace SimpleAuthApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240903091502_UpdateTokenTable")]
-    partial class UpdateTokenTable
+    [Migration("20240904085100_InitCreate")]
+    partial class InitCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,11 +27,9 @@ namespace SimpleAuthApplication.Migrations
 
             modelBuilder.Entity("SimpleAuthApplication.Models.Auth", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -45,8 +43,8 @@ namespace SimpleAuthApplication.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -58,14 +56,12 @@ namespace SimpleAuthApplication.Migrations
 
             modelBuilder.Entity("SimpleAuthApplication.Models.Token", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AuthId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("AuthId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("RefreshToken")
                         .IsRequired()
@@ -83,11 +79,9 @@ namespace SimpleAuthApplication.Migrations
 
             modelBuilder.Entity("SimpleAuthApplication.Models.User", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Age")
                         .HasColumnType("int");

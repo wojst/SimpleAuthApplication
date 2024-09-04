@@ -2,12 +2,12 @@
 {
     public class Token
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string RefreshToken { get; set; }
         public DateTime RefreshTokenExpiry { get; set; }
 
         
-        public int AuthId { get; set; }
+        public Guid AuthId { get; set; }
         public Auth Auth { get; set; }
     }
 }

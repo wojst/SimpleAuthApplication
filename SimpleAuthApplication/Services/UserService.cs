@@ -18,7 +18,7 @@ namespace SimpleAuthApplication.Services
             _jwtTokenGenerator = jwtTokenGenerator;
         }
 
-        public async Task<UserDto> GetUserAsync(int userId)
+        public async Task<UserDto> GetUserAsync(Guid userId)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
 

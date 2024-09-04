@@ -54,7 +54,7 @@ namespace SimpleAuthApplication.Controllers
                 return Unauthorized("User is not authenticated");
             }
 
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var userDto = await _userService.GetUserAsync(userId);
 
             return Ok(userDto);

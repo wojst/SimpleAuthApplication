@@ -13,7 +13,7 @@ namespace SimpleAuthApplication.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<User> GetUserByIdAsync(int id)
+        public async Task<User> GetUserByIdAsync(Guid id)
         {
             return await _dbContext.Users
                 .Include(u => u.Auth)

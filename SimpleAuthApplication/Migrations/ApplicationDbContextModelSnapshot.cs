@@ -24,11 +24,9 @@ namespace SimpleAuthApplication.Migrations
 
             modelBuilder.Entity("SimpleAuthApplication.Models.Auth", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -42,27 +40,25 @@ namespace SimpleAuthApplication.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Auths", (string)null);
+                    b.ToTable("Auths");
                 });
 
             modelBuilder.Entity("SimpleAuthApplication.Models.Token", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AuthId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("AuthId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("RefreshToken")
                         .IsRequired()
@@ -75,16 +71,14 @@ namespace SimpleAuthApplication.Migrations
 
                     b.HasIndex("AuthId");
 
-                    b.ToTable("Tokens", (string)null);
+                    b.ToTable("Tokens");
                 });
 
             modelBuilder.Entity("SimpleAuthApplication.Models.User", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Age")
                         .HasColumnType("int");
@@ -107,7 +101,7 @@ namespace SimpleAuthApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("SimpleAuthApplication.Models.Auth", b =>
