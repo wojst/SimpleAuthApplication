@@ -1,4 +1,6 @@
-﻿using SimpleAuthApplication.Dtos;
+﻿using Microsoft.AspNetCore.SignalR;
+using SimpleAuthApplication.Dtos;
+using SimpleAuthApplication.Hubs;
 using SimpleAuthApplication.Jwt;
 using SimpleAuthApplication.Models;
 using SimpleAuthApplication.Repositories;
@@ -10,12 +12,14 @@ namespace SimpleAuthApplication.Services
         private readonly IUserRepository _userRepository;
         private readonly IAuthRepository _authRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
+        private readonly IHubContext<UserActivityHub> _hubContext;
 
-        public UserService(IUserRepository userRepository, IAuthRepository authRepository, IJwtTokenGenerator jwtTokenGenerator)
+        public UserService(IUserRepository userRepository, IAuthRepository authRepository, IJwtTokenGenerator jwtTokenGenerator, IHubContext<UserActivityHub> hubContext)
         {
             _userRepository = userRepository;
             _authRepository = authRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
+            _hubContext = hubContext;
         }
 
         public async Task<UserDto> GetUserAsync(Guid userId)
@@ -42,13 +46,19 @@ namespace SimpleAuthApplication.Services
 
         public async Task<TokenDto> LoginAsync(AuthDto authDto)
         {
+            var user = await _userRepository.GetUserByLoginAsync(authDto.Login);
             var auth = await _authRepository.GetAuthByLoginAsync(authDto.Login);
             if (auth == null || !BCrypt.Net.BCrypt.Verify(authDto.Password, auth.Password))
             {
+                Console.WriteLine("przed wiadomoscia");
+                await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"login FAILED.");
+                Console.WriteLine("po wiadomosci");
                 throw new UnauthorizedAccessException("Invalid login or password!");
             }
 
-            var user = await _userRepository.GetUserByLoginAsync(authDto.Login);
+            
+            await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{user.FirstName} {user.LastName} has logged in.");
+
             var tokenDto = _jwtTokenGenerator.GenerateToken(user);
 
             var token = new Token
@@ -106,6 +116,7 @@ namespace SimpleAuthApplication.Services
 
             await _userRepository.CreateUserAsync(newUser);
         }
+
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
             var users = await _userRepository.GetAllUsersAsync();

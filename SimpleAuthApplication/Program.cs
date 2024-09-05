@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SimpleAuthApplication.Data;
+using SimpleAuthApplication.Hubs;
 using SimpleAuthApplication.Jwt;
 using SimpleAuthApplication.Repositories;
 using SimpleAuthApplication.Services;
+using System.Net.WebSockets;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,6 +52,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// SignalR
+builder.Services.AddSignalR();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -69,4 +74,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapHub<UserActivityHub>("/userActivityHub");
+
 app.Run();
+
+
+// ----------------------------------------
