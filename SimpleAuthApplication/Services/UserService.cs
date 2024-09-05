@@ -50,9 +50,7 @@ namespace SimpleAuthApplication.Services
             var auth = await _authRepository.GetAuthByLoginAsync(authDto.Login);
             if (auth == null || !BCrypt.Net.BCrypt.Verify(authDto.Password, auth.Password))
             {
-                Console.WriteLine("przed wiadomoscia");
-                await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"login FAILED.");
-                Console.WriteLine("po wiadomosci");
+                await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"Login attempt failed.");
                 throw new UnauthorizedAccessException("Invalid login or password!");
             }
 
@@ -90,6 +88,8 @@ namespace SimpleAuthApplication.Services
 
             await _authRepository.UpdateTokenAsync(token);
 
+            await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{user.FirstName} {user.LastName} has refreshed token.");
+
             return newTokenDto;
 
         }
@@ -113,6 +113,8 @@ namespace SimpleAuthApplication.Services
                     Email = userRegisterDto.Email
                 }
             };
+
+            await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{newUser.FirstName} {newUser.LastName} has registered in.");
 
             await _userRepository.CreateUserAsync(newUser);
         }

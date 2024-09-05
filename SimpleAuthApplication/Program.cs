@@ -77,6 +77,3 @@ app.MapControllers();
 app.MapHub<UserActivityHub>("/userActivityHub");
 
 app.Run();
-
-
-// ----------------------------------------
