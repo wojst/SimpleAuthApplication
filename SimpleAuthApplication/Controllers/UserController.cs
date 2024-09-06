@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SimpleAuthApplication.Dtos;
 using SimpleAuthApplication.Models;
@@ -46,14 +47,10 @@ namespace SimpleAuthApplication.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> Me()
         {
-            if (User.Identity?.IsAuthenticated != true)
-            {
-                return Unauthorized("User is not authenticated");
-            }
-
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var userDto = await _userService.GetUserAsync(userId);
 
@@ -73,6 +70,21 @@ namespace SimpleAuthApplication.Controllers
         {
             var users = await _userService.GetAllUsersAsync();
             return Ok(users);
+        }
+
+        [Authorize]
+        [HttpPut("edit/{id}")]
+        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserUpdateDto userUpdateDto)
+        {
+            var userIdFromToken = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            if (userIdFromToken != id)
+            {
+                return StatusCode(403, "You are not allowed to edit other users' data");
+            }
+
+            await _userService.UpdateUserAsync(id, userUpdateDto);
+            return Ok(userUpdateDto);
         }
 
 

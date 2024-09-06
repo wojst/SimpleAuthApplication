@@ -10,5 +10,6 @@ namespace SimpleAuthApplication.Services
         Task RegisterUserAsync(UserRegisterDto userRegisterDto);
         Task<TokenDto> RefreshTokenAsync(string refreshToken);
         Task<IEnumerable<UserDto>> GetAllUsersAsync();
+        Task UpdateUserAsync(Guid userId, UserUpdateDto userUpdateDto);
     }
 }

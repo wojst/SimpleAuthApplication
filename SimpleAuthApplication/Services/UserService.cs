@@ -44,6 +44,24 @@ namespace SimpleAuthApplication.Services
             };
         }
 
+        public async Task UpdateUserAsync(Guid userId, UserUpdateDto userUpdateDto)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User not found!");
+            }
+
+            user.FirstName = userUpdateDto.FirstName ?? user.FirstName;
+            user.LastName = userUpdateDto.LastName ?? user.LastName;
+            user.Age = userUpdateDto.Age != 0 ? userUpdateDto.Age : user.Age;
+            user.JobPosition = userUpdateDto.JobPosition ?? user.JobPosition;
+            user.EmploymentType = userUpdateDto.EmploymentType ?? user.EmploymentType;
+
+            await _userRepository.UpdateUserAsync(user);
+        }
+
         public async Task<TokenDto> LoginAsync(AuthDto authDto)
         {
             var user = await _userRepository.GetUserByLoginAsync(authDto.Login);
