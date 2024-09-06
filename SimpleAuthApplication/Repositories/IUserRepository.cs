@@ -9,5 +9,6 @@ namespace SimpleAuthApplication.Repositories
         Task<User> GetUserByLoginAsync(string login);
         Task CreateUserAsync(User user);
         Task UpdateUserAsync(User user);
+        Task DeleteUserAsync(Guid id);
     }
 }

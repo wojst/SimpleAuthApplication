@@ -19,6 +19,14 @@ namespace SimpleAuthApplication.Controllers
             _userService = userService;
         }
 
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] UserRegisterDto userRegisterDto)
+        {
+            await _userService.RegisterUserAsync(userRegisterDto);
+
+            return Ok();
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AuthDto authDto)
         {
@@ -57,14 +65,6 @@ namespace SimpleAuthApplication.Controllers
             return Ok(userDto);
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] UserRegisterDto userRegisterDto)
-        {
-            await _userService.RegisterUserAsync(userRegisterDto);
-
-            return Ok();
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -73,7 +73,7 @@ namespace SimpleAuthApplication.Controllers
         }
 
         [Authorize]
-        [HttpPut("edit/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserUpdateDto userUpdateDto)
         {
             var userIdFromToken = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -87,6 +87,13 @@ namespace SimpleAuthApplication.Controllers
             return Ok(userUpdateDto);
         }
 
+        
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            await _userService.DeleteUserAsync(id);
+            return Ok();
+        }
 
     }
 }

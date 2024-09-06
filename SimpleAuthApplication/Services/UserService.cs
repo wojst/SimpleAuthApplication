@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.SignalR;
 using SimpleAuthApplication.Dtos;
 using SimpleAuthApplication.Hubs;
 using SimpleAuthApplication.Jwt;
 using SimpleAuthApplication.Models;
 using SimpleAuthApplication.Repositories;
+using System.Security.Claims;
 
 namespace SimpleAuthApplication.Services
 {
@@ -60,6 +62,18 @@ namespace SimpleAuthApplication.Services
             user.EmploymentType = userUpdateDto.EmploymentType ?? user.EmploymentType;
 
             await _userRepository.UpdateUserAsync(user);
+        }
+
+        public async Task DeleteUserAsync(Guid id)
+        {
+            var user = _userRepository.GetUserByIdAsync(id);
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User not found");
+            }
+
+            await _userRepository.DeleteUserAsync(id);
         }
 
         public async Task<TokenDto> LoginAsync(AuthDto authDto)

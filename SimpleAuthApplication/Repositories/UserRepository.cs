@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Validations;
 using SimpleAuthApplication.Data;
 using SimpleAuthApplication.Models;
 
@@ -45,6 +46,18 @@ namespace SimpleAuthApplication.Repositories
         {
             _dbContext.Users.Update(user);
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteUserAsync(Guid id)
+        {
+            var user = await _dbContext.Users.FindAsync(id);
+
+            if (user != null)
+            {
+                _dbContext.Users.Remove(user);
+                await _dbContext.SaveChangesAsync();
+
+            }
         }
 
 
