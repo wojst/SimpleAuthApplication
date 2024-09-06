@@ -14,6 +14,12 @@ namespace SimpleAuthApplication.Models
 
         public Guid AuthId { get; set; }
         public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public Guid CreatedBy { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public Guid UpdatedBy { get; set; }
+
+
         public Auth Auth { get; set; }
     }
 }

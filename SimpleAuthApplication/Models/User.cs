@@ -27,6 +27,11 @@ namespace SimpleAuthApplication.Models
         [StringLength(50)]
         public string EmploymentType { get; set; }
 
+        public DateTime CreatedAt { get; set; }
+        public Guid CreatedBy {  get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public Guid UpdatedBy { get; set; }
+
         
         public Auth Auth { get; set; }
     }

@@ -24,6 +24,99 @@ namespace SimpleAuthApplication.Services
             _hubContext = hubContext;
         }
 
+        public async Task RegisterUserAsync(UserRegisterDto userRegisterDto)
+        {
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(userRegisterDto.Password);
+
+            var newUser = new User
+            {
+                FirstName = userRegisterDto.FirstName,
+                LastName = userRegisterDto.LastName,
+                Age = userRegisterDto.Age,
+                JobPosition = userRegisterDto.JobPosition,
+                EmploymentType = userRegisterDto.EmploymentType,
+                CreatedAt = DateTime.Now,
+                CreatedBy = Guid.Empty,
+                UpdatedAt = DateTime.Now,
+                UpdatedBy = Guid.Empty,
+
+                Auth = new Auth
+                {
+                    Login = userRegisterDto.Login,
+                    Password = hashedPassword,
+                    Email = userRegisterDto.Email,
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = Guid.Empty,
+                    UpdatedAt = DateTime.Now,
+                    UpdatedBy = Guid.Empty
+                }
+            };
+
+            await _userRepository.CreateUserAsync(newUser);       
+
+            await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{newUser.FirstName} {newUser.LastName} has registered in.");
+        }
+
+        public async Task<TokenDto> LoginAsync(AuthDto authDto)
+        {
+            var user = await _userRepository.GetUserByLoginAsync(authDto.Login);
+            var auth = await _authRepository.GetAuthByLoginAsync(authDto.Login);
+            if (auth == null || !BCrypt.Net.BCrypt.Verify(authDto.Password, auth.Password))
+            {
+                await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"Login attempt failed.");
+                throw new UnauthorizedAccessException("Invalid login or password!");
+            }
+
+            await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{user.FirstName} {user.LastName} has logged in.");
+
+            var tokenDto = _jwtTokenGenerator.GenerateToken(user);
+
+            var token = new Token
+            {
+                RefreshToken = tokenDto.RefreshToken,
+                RefreshTokenExpiry = DateTime.UtcNow.AddDays(30),
+                AuthId = auth.Id,
+                IsActive = true
+            };
+
+            await _authRepository.CreateTokenAsync(token);
+
+            return tokenDto;
+        }
+
+        public async Task<TokenDto> RefreshTokenAsync(string refreshToken)
+        {
+            // Istniejący token
+            var token = await _authRepository.GetTokenAsync(refreshToken);
+
+            // Sprawdzanie czy token istnieje lub nie wygasł
+            if (token == null || token.RefreshTokenExpiry <= DateTime.UtcNow)
+            {
+                throw new UnauthorizedAccessException("Refresh token has expired");
+            }
+
+            // Dezaktywacja starego tokenu
+            await _authRepository.DeactiveTokenAsync(refreshToken);
+
+            // Znajdź użytkownika dla istniejącego tokenu i wygeneruj nowy
+            var user = await _userRepository.GetUserByIdAsync(token.Auth.UserId);
+            var newTokenDto = _jwtTokenGenerator.GenerateToken(user);
+
+            var newToken = new Token
+            {
+                RefreshToken = newTokenDto.RefreshToken,
+                RefreshTokenExpiry = DateTime.UtcNow.AddDays(30),
+                AuthId = token.AuthId,
+                IsActive = true
+            };
+
+            await _authRepository.CreateTokenAsync(newToken);
+
+            await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{user.FirstName} {user.LastName} has refreshed token.");
+
+            return newTokenDto;
+        }
+
         public async Task<UserDto> GetUserAsync(Guid userId)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
@@ -74,96 +167,8 @@ namespace SimpleAuthApplication.Services
                 throw new KeyNotFoundException("User not found");
             }
 
-            
             await _userRepository.DeleteUserAsync(id);
             await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{user.FirstName} {user.LastName} deleted.");
-        }
-
-        public async Task<TokenDto> LoginAsync(AuthDto authDto)
-        {
-            var user = await _userRepository.GetUserByLoginAsync(authDto.Login);
-            var auth = await _authRepository.GetAuthByLoginAsync(authDto.Login);
-            if (auth == null || !BCrypt.Net.BCrypt.Verify(authDto.Password, auth.Password))
-            {
-                await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"Login attempt failed.");
-                throw new UnauthorizedAccessException("Invalid login or password!");
-            }
-
-            
-            await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{user.FirstName} {user.LastName} has logged in.");
-
-            var tokenDto = _jwtTokenGenerator.GenerateToken(user);
-
-            var token = new Token
-            {
-                RefreshToken = tokenDto.RefreshToken,
-                RefreshTokenExpiry = DateTime.UtcNow.AddDays(30),
-                AuthId = auth.Id,
-                IsActive = true
-            };
-
-            await _authRepository.CreateTokenAsync(token);
-
-            return tokenDto;
-        }
-
-        public async Task<TokenDto> RefreshTokenAsync(string refreshToken)
-        {
-            // Istniejący token
-            var token = await _authRepository.GetTokenAsync(refreshToken);
-
-            // Sprawdzanie czy token istnieje lub nie wygasł
-            if (token == null || token.RefreshTokenExpiry <= DateTime.UtcNow)
-            {
-                throw new UnauthorizedAccessException("Refresh token has expired");
-            }
-
-            // Dezaktywacja starego tokenu
-            await _authRepository.DeactiveTokenAsync(refreshToken);
-
-            // Znajdź użytkownika dla istniejącego tokenu i wygeneruj nowy
-            var user = await _userRepository.GetUserByIdAsync(token.Auth.UserId);
-            var newTokenDto = _jwtTokenGenerator.GenerateToken(user);
-
-            var newToken = new Token
-            {
-                RefreshToken = newTokenDto.RefreshToken,
-                RefreshTokenExpiry = DateTime.UtcNow.AddDays(30),
-                AuthId = token.AuthId,
-                IsActive = true
-            };
-
-            await _authRepository.CreateTokenAsync(newToken);
-
-            await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{user.FirstName} {user.LastName} has refreshed token.");
-
-            return newTokenDto;
-
-        }
-
-        public async Task RegisterUserAsync(UserRegisterDto userRegisterDto)
-        {
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(userRegisterDto.Password);
-
-            var newUser = new User
-            {
-                FirstName = userRegisterDto.FirstName,
-                LastName = userRegisterDto.LastName,
-                Age = userRegisterDto.Age,
-                JobPosition = userRegisterDto.JobPosition,
-                EmploymentType = userRegisterDto.EmploymentType,
-
-                Auth = new Auth
-                {
-                    Login = userRegisterDto.Login,
-                    Password = hashedPassword,
-                    Email = userRegisterDto.Email
-                }
-            };
-
-            await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{newUser.FirstName} {newUser.LastName} has registered in.");
-
-            await _userRepository.CreateUserAsync(newUser);
         }
 
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
