@@ -62,18 +62,21 @@ namespace SimpleAuthApplication.Services
             user.EmploymentType = userUpdateDto.EmploymentType ?? user.EmploymentType;
 
             await _userRepository.UpdateUserAsync(user);
+            await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{user.FirstName} {user.LastName} has updated own data.");
         }
 
         public async Task DeleteUserAsync(Guid id)
         {
-            var user = _userRepository.GetUserByIdAsync(id);
+            var user = await _userRepository.GetUserByIdAsync(id);
 
             if (user == null)
             {
                 throw new KeyNotFoundException("User not found");
             }
 
+            
             await _userRepository.DeleteUserAsync(id);
+            await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{user.FirstName} {user.LastName} deleted.");
         }
 
         public async Task<TokenDto> LoginAsync(AuthDto authDto)
@@ -95,7 +98,8 @@ namespace SimpleAuthApplication.Services
             {
                 RefreshToken = tokenDto.RefreshToken,
                 RefreshTokenExpiry = DateTime.UtcNow.AddDays(30),
-                AuthId = auth.Id
+                AuthId = auth.Id,
+                IsActive = true
             };
 
             await _authRepository.CreateTokenAsync(token);
@@ -105,20 +109,31 @@ namespace SimpleAuthApplication.Services
 
         public async Task<TokenDto> RefreshTokenAsync(string refreshToken)
         {
+            // Istniejący token
             var token = await _authRepository.GetTokenAsync(refreshToken);
 
+            // Sprawdzanie czy token istnieje lub nie wygasł
             if (token == null || token.RefreshTokenExpiry <= DateTime.UtcNow)
             {
                 throw new UnauthorizedAccessException("Refresh token has expired");
             }
 
+            // Dezaktywacja starego tokenu
+            await _authRepository.DeactiveTokenAsync(refreshToken);
+
+            // Znajdź użytkownika dla istniejącego tokenu i wygeneruj nowy
             var user = await _userRepository.GetUserByIdAsync(token.Auth.UserId);
             var newTokenDto = _jwtTokenGenerator.GenerateToken(user);
 
-            token.RefreshToken = newTokenDto.RefreshToken;
-            token.RefreshTokenExpiry = DateTime.UtcNow.AddDays(30);
+            var newToken = new Token
+            {
+                RefreshToken = newTokenDto.RefreshToken,
+                RefreshTokenExpiry = DateTime.UtcNow.AddDays(30),
+                AuthId = token.AuthId,
+                IsActive = true
+            };
 
-            await _authRepository.UpdateTokenAsync(token);
+            await _authRepository.CreateTokenAsync(newToken);
 
             await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{user.FirstName} {user.LastName} has refreshed token.");
 

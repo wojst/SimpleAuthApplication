@@ -12,8 +12,8 @@ namespace SimpleAuthApplication.Models
         [Required]
         public DateTime RefreshTokenExpiry { get; set; }
 
-        
         public Guid AuthId { get; set; }
+        public bool IsActive { get; set; }
         public Auth Auth { get; set; }
     }
 }

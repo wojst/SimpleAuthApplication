@@ -24,7 +24,7 @@ namespace SimpleAuthApplication.Controllers
         {
             await _userService.RegisterUserAsync(userRegisterDto);
 
-            return Ok();
+            return Ok($"User {userRegisterDto.Login} registered.");
         }
 
         [HttpPost("login")]
@@ -92,7 +92,7 @@ namespace SimpleAuthApplication.Controllers
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             await _userService.DeleteUserAsync(id);
-            return Ok();
+            return Ok($"User deleted");
         }
 
     }

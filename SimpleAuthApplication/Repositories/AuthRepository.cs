@@ -39,5 +39,16 @@ namespace SimpleAuthApplication.Repositories
                                .ThenInclude(a => a.User)
                                .FirstOrDefaultAsync(t => t.RefreshToken == refreshToken);
         }
+
+        public async Task DeactiveTokenAsync(string refreshToken)
+        {
+            var token = await _dbContext.Tokens.FirstOrDefaultAsync(t => t.RefreshToken == refreshToken);
+            if (token != null)
+            {
+                token.IsActive = false;
+                await _dbContext.SaveChangesAsync();
+            }
+            
+        }
     }
 }
