@@ -162,6 +162,8 @@ namespace SimpleAuthApplication.Services
             user.Age = userUpdateDto.Age != 0 ? userUpdateDto.Age : user.Age;
             user.JobPosition = userUpdateDto.JobPosition ?? user.JobPosition;
             user.EmploymentType = userUpdateDto.EmploymentType ?? user.EmploymentType;
+            user.UpdatedAt = DateTime.Now;
+            user.UpdatedBy = user.Id;
 
             await _userRepository.UpdateUserAsync(user);
             await _hubContext.Clients.All.SendAsync("ReceiveUserActivity", $"{user.FirstName} {user.LastName} has updated own data.");
