@@ -112,7 +112,11 @@ namespace SimpleAuthApplication.Services
                 RefreshToken = newTokenDto.RefreshToken,
                 RefreshTokenExpiry = DateTime.UtcNow.AddDays(30),
                 AuthId = token.AuthId,
-                IsActive = true
+                IsActive = true,
+                CreatedAt = DateTime.Now,
+                CreatedBy = user.Id,
+                UpdatedAt = DateTime.Now,
+                UpdatedBy = user.Id
             };
 
             await _authRepository.CreateTokenAsync(newToken);

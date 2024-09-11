@@ -7,10 +7,12 @@ namespace SimpleAuthApplication.Repositories
     public class AuthRepository : IAuthRepository
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly IUserRepository _userRepository;
 
-        public AuthRepository(ApplicationDbContext dbContext)
+        public AuthRepository(ApplicationDbContext dbContext, IUserRepository userRepository)
         {
             _dbContext = dbContext;
+            _userRepository = userRepository;
         }
 
         public async Task<Auth> GetAuthByLoginAsync(string login)
@@ -43,9 +45,13 @@ namespace SimpleAuthApplication.Repositories
         public async Task DeactiveTokenAsync(string refreshToken)
         {
             var token = await _dbContext.Tokens.FirstOrDefaultAsync(t => t.RefreshToken == refreshToken);
+            var user = await _userRepository.GetUserByIdAsync(token.Auth.UserId);
             if (token != null)
             {
                 token.IsActive = false;
+                token.UpdatedAt = DateTime.Now;
+                token.UpdatedBy = user.Id;
+
                 await _dbContext.SaveChangesAsync();
             }
             
