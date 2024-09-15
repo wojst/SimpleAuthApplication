@@ -13,6 +13,7 @@ namespace SimpleAuthApplication.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Auth> Auths { get; set; }
         public DbSet<Token> Tokens { get; set; }
+        public DbSet<CurrencyRate> CurrencyRates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

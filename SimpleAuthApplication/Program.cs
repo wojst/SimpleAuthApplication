@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Quartz;
 using SimpleAuthApplication.Data;
 using SimpleAuthApplication.Hubs;
+using SimpleAuthApplication.Jobs;
 using SimpleAuthApplication.Jwt;
 using SimpleAuthApplication.Repositories;
 using SimpleAuthApplication.Services;
@@ -19,6 +21,26 @@ builder.Services.AddControllers();
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+// Quartz
+builder.Services.AddScoped<ICurrencyRateRepository, CurrencyRateRepository>();
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionJobFactory();
+
+    // Definiowanie cyklicznej metody
+    var jobKey = new JobKey("CurrencyRateJob");
+    q.AddJob<CurrencyRateJob>(opts => opts.WithIdentity(jobKey));
+
+    // Konfiguracja zadania, które uruchomi siê codziennie o 12:00
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("CurrencyRateTrigger")
+        .WithCronSchedule("0 * * * * ?")); // Cron: uruchom codziennie o 12:00 / (co minute)
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 // JWT
 builder.Services.AddScoped<IJwtTokenGenerator>(provider =>
