@@ -74,7 +74,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-JobManager.Initialize(new CurrencyRateRegistry());
+// Pobieramy IServiceScopeFactory i przekazujemy do FluentScheduler
+var serviceScopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+
+// Inicjalizacja JobManager z przekazaniem scope factory
+JobManager.Initialize(new CurrencyRateRegistry(serviceScopeFactory));
 Console.WriteLine("JobManager initialized."); // LOG
 
 app.UseHttpsRedirection();
