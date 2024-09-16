@@ -1,8 +1,8 @@
+using FluentScheduler;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Quartz;
 using SimpleAuthApplication.Data;
 using SimpleAuthApplication.Hubs;
 using SimpleAuthApplication.Jobs;
@@ -22,26 +22,6 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-// Quartz
-builder.Services.AddScoped<ICurrencyRateRepository, CurrencyRateRepository>();
-builder.Services.AddQuartz(q =>
-{
-    q.UseMicrosoftDependencyInjectionJobFactory();
-
-    // Definiowanie cyklicznej metody
-    var jobKey = new JobKey("CurrencyRateJob");
-    q.AddJob<CurrencyRateJob>(opts => opts.WithIdentity(jobKey));
-
-    // Konfiguracja zadania, które uruchomi siê codziennie o 12:00
-    q.AddTrigger(opts => opts
-        .ForJob(jobKey)
-        .WithIdentity("CurrencyRateTrigger")
-        .WithCronSchedule("0 * * * * ?")); // Cron: uruchom codziennie o 12:00 / (co minute)
-});
-
-builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
-
 // JWT
 builder.Services.AddScoped<IJwtTokenGenerator>(provider =>
     new JwtTokenGenerator(
@@ -53,7 +33,11 @@ builder.Services.AddScoped<IJwtTokenGenerator>(provider =>
 // Repositories, Services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<ICurrencyRateRepository, CurrencyRateRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+
+builder.Services.AddHttpClient();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -90,12 +74,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+JobManager.Initialize(new CurrencyRateRegistry());
+Console.WriteLine("JobManager initialized."); // LOG
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.MapHub<UserActivityHub>("/userActivityHub");
 
 app.Run();

@@ -28,6 +28,10 @@ namespace SimpleAuthApplication.Data
                 .HasMany(a => a.Tokens)
                 .WithOne(t => t.Auth) 
                 .HasForeignKey(t => t.AuthId);
+
+            modelBuilder.Entity<CurrencyRate>()
+                .Property(c => c.Mid)
+                .HasColumnType("decimal(18, 4)");
         }
     }
 }
